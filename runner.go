@@ -46,6 +46,7 @@ func (r *Runner) startRPC() error {
 	// Gather all the possible APIs to surface
 	apis := r.apis()
 	cfg := rpc.GetDefaultRPCConfig("localhost", 3333)
+	cfg.HTTPModules = append(cfg.HTTPModules, "chain")
 	if err := r.startHTTP(cfg.HTTPEndpoint(), apis, cfg.HTTPModules, cfg.HTTPCors, cfg.HTTPVirtualHosts, cfg.HTTPTimeouts, cfg.APIKey); err != nil {
 		return err
 	}
@@ -84,7 +85,7 @@ func (r *Runner) apis() []rpc.API {
 		{
 			Namespace: "chain",
 			Version:   "1.0",
-			Service:   api.NewChainApi(baseApi, r.chain),
+			Service:   api.NewChainApi(baseApi, r.chain, r.TxPool()),
 			Public:    true,
 		},
 	}
