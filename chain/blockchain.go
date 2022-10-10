@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"github.com/idena-network/idena-go/blockchain"
 	"github.com/idena-network/idena-go/blockchain/types"
+	"github.com/idena-network/idena-go/blockchain/validation"
 	"github.com/idena-network/idena-go/common"
 	"github.com/idena-network/idena-go/common/eventbus"
 	"github.com/idena-network/idena-go/config"
@@ -41,7 +42,7 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 
 	consensusCfg := config.GetDefaultConsensusConfig()
 	consensusCfg.Automine = true
-
+	consensusCfg.EnableUpgrade10 = true
 	cfg := &config.Config{
 		Network:   0x99,
 		Consensus: consensusCfg,
@@ -62,6 +63,8 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 	if cfg.Mempool == nil {
 		cfg.Mempool = config.GetDefaultMempoolConfig()
 	}
+	validation.SetAppConfig(cfg)
+
 	txPool := mempool.NewTxPool(appState, bus, cfg, collector.NewStatsCollector())
 	offline := blockchain.NewOfflineDetector(cfg, db, appState, secStore, bus)
 
