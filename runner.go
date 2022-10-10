@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"github.com/idena-network/idena-contract-runner/api"
 	"github.com/idena-network/idena-contract-runner/chain"
+	"github.com/idena-network/idena-go/blockchain"
+	"github.com/idena-network/idena-go/common"
 	"github.com/idena-network/idena-go/common/hexutil"
 	"github.com/idena-network/idena-go/core/mempool"
+	"github.com/idena-network/idena-go/core/state"
 	"github.com/idena-network/idena-go/crypto"
 	"github.com/idena-network/idena-go/ipfs"
 	"github.com/idena-network/idena-go/log"
@@ -93,4 +96,12 @@ func (r *Runner) apis() []rpc.API {
 
 func (r *Runner) TxPool() *mempool.TxPool {
 	return r.chain.TxPool()
+}
+
+func (r *Runner) LogBalance() {
+	stateDb, _ := r.chain.AppStateForCheck()
+	log.Info("Blockchain balances:")
+	stateDb.State.IterateOverAccounts(func(addr common.Address, account state.Account) {
+		log.Info("", "addr", addr.String(), "balance", blockchain.ConvertToFloat(account.Balance).String()+" IDNA")
+	})
 }

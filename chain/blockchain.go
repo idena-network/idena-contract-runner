@@ -84,8 +84,7 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 
 	result := &MemBlockchain{chain, txPool, appState, keyStore, secStore}
 	txPool.Initialize(chain.Head, secStore.GetAddress(), false)
-	return result
-}
+	return result}
 
 func (b *MemBlockchain) KeyStore() *keystore.KeyStore {
 	return b.keyStore

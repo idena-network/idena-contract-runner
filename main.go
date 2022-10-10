@@ -32,6 +32,7 @@ func main() {
 		if err := runner.Start(); err != nil {
 			return err
 		}
+		runner.LogBalance();
 		runner.WaitForStop()
 		return nil
 	}

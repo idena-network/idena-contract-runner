@@ -6,6 +6,7 @@ import (
 	"github.com/idena-network/idena-go/blockchain/types"
 	"github.com/idena-network/idena-go/common"
 	"github.com/idena-network/idena-go/core/mempool"
+	"github.com/idena-network/idena-go/log"
 	"math/big"
 )
 
@@ -57,4 +58,17 @@ func (api *ChainApi) TxReceipt(hash common.Hash) *TxReceipt {
 	receipt := api.bc.GetReceipt(hash)
 
 	return convertReceipt(tx, receipt, feePerGas)
+}
+
+func (api *ChainApi) ResetTo(block uint64) error{
+	_, err := api.bc.ResetTo(block)
+	if err != nil {
+		return err
+	}
+	log.Info("Chain was reset", "block", block)
+	return nil
+}
+
+func (api *ChainApi) God() common.Address {
+	return api.baseApi.getCurrentCoinbase()
 }

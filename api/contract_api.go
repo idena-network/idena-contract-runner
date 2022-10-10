@@ -13,8 +13,10 @@ import (
 	"github.com/idena-network/idena-go/vm"
 	"github.com/idena-network/idena-go/vm/env"
 	"github.com/idena-network/idena-go/vm/helpers"
+	models "github.com/idena-network/idena-wasm-binding/lib/protobuf"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
+	"google.golang.org/protobuf/proto"
 	"math/big"
 	"strconv"
 )
@@ -157,14 +159,33 @@ func (d DynamicArgs) ToSlice() ([][]byte, error) {
 }
 
 type TxReceipt struct {
-	Contract common.Address  `json:"contract"`
-	Method   string          `json:"method"`
-	Success  bool            `json:"success"`
-	GasUsed  uint64          `json:"gasUsed"`
-	TxHash   *common.Hash    `json:"txHash"`
-	Error    string          `json:"error"`
-	GasCost  decimal.Decimal `json:"gasCost"`
-	TxFee    decimal.Decimal `json:"txFee"`
+	Contract     common.Address  `json:"contract"`
+	Method       string          `json:"method"`
+	Success      bool            `json:"success"`
+	GasUsed      uint64          `json:"gasUsed"`
+	TxHash       *common.Hash    `json:"txHash"`
+	Error        string          `json:"error"`
+	GasCost      decimal.Decimal `json:"gasCost"`
+	TxFee        decimal.Decimal `json:"txFee"`
+	ActionResult *ActionResult   `json:"ActionResult"`
+}
+
+type ActionResult struct {
+	InputAction      InputAction     `json:"inputAction"`
+	Success          bool            `json:"success"`
+	Error            string          `json:"error"`
+	GasUsed          uint64          `json:"gasUsed"`
+	RemainingGas     uint64          `json:"remainingGas"`
+	OutputData       hexutil.Bytes   `json:"outputData"`
+	SubActionResults []*ActionResult `json:"subActionResults"`
+}
+
+type InputAction struct {
+	ActionType uint32        `json:"actionType"`
+	Amount     hexutil.Bytes `json:"amount"`
+	Method     string        `json:"method"`
+	Args       hexutil.Bytes `json:"args"`
+	GasLimit   uint64        `json:"gasLimit"`
 }
 
 type Event struct {
@@ -327,6 +348,7 @@ func convertReceipt(tx *types.Transaction, receipt *types.TxReceipt, feePerGas *
 		GasUsed:  receipt.GasUsed,
 		GasCost:  blockchain.ConvertToFloat(receipt.GasCost),
 		TxFee:    blockchain.ConvertToFloat(fee),
+		ActionResult: convertActionResultBytes(receipt.ActionResult),
 	}
 }
 
@@ -486,4 +508,38 @@ func conversion(convertTo string, data []byte) (interface{}, error) {
 	default:
 		return hexutil.Encode(data), nil
 	}
+}
+
+func convertActionResultBytes(actionResult []byte) *ActionResult {
+	if len(actionResult) == 0 {
+		return nil
+	}
+	protoModel := &models.ActionResult{}
+
+	if err := proto.Unmarshal(actionResult, protoModel); err != nil {
+		return nil
+	}
+	return convertActionResult(protoModel)
+}
+
+func convertActionResult(protoModel *models.ActionResult) *ActionResult {
+	result := &ActionResult{}
+	if protoModel.InputAction != nil {
+		result.InputAction = InputAction{
+			Args:       protoModel.InputAction.Args,
+			Method:     protoModel.InputAction.Method,
+			Amount:     protoModel.InputAction.Amount,
+			ActionType: protoModel.InputAction.ActionType,
+			GasLimit:   protoModel.InputAction.GasLimit,
+		}
+	}
+	result.Success = protoModel.Success
+	result.Error = protoModel.Error
+	result.GasUsed = protoModel.GasUsed
+	result.RemainingGas = protoModel.RemainingGas
+	result.OutputData = protoModel.OutputData
+	for _, subAction := range protoModel.SubActionResults {
+		result.SubActionResults = append(result.SubActionResults, convertActionResult(subAction))
+	}
+	return result
 }
