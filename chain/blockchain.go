@@ -54,7 +54,9 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 			FirstCeremonyTime: 4070908800, //01.01.2099
 		},
 		Validation: &config.ValidationConfig{},
-		Blockchain: &config.BlockchainConfig{},
+		Blockchain: &config.BlockchainConfig{
+			WriteAllEvents: true,
+		},
 	}
 
 	if cfg.OfflineDetection == nil {

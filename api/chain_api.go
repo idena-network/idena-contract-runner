@@ -3,9 +3,11 @@ package api
 import (
 	"fmt"
 	"github.com/idena-network/idena-contract-runner/chain"
+	"github.com/idena-network/idena-go/blockchain"
 	"github.com/idena-network/idena-go/blockchain/types"
 	"github.com/idena-network/idena-go/common"
 	"github.com/idena-network/idena-go/core/mempool"
+	"github.com/idena-network/idena-go/core/state"
 	"github.com/idena-network/idena-go/log"
 	"math/big"
 )
@@ -27,6 +29,7 @@ func NewChainApi(baseApi *BaseApi, chain *chain.MemBlockchain, pool *mempool.TxP
 func (api *ChainApi) GenerateBlocks(cnt int) {
 	fmt.Println(fmt.Sprintf("start generating blocks: %v", cnt))
 	api.bc.GenerateBlocks(cnt)
+	api.LogBalance()
 }
 
 func (api *ChainApi) TxReceipt(hash common.Hash) *TxReceipt {
@@ -66,9 +69,18 @@ func (api *ChainApi) ResetTo(block uint64) error{
 		return err
 	}
 	log.Info("Chain was reset", "block", block)
+	api.LogBalance()
 	return nil
 }
 
 func (api *ChainApi) God() common.Address {
 	return api.baseApi.getCurrentCoinbase()
+}
+
+func (api *ChainApi) LogBalance() {
+	stateDb := api.baseApi.getAppStateForCheck()
+	log.Info("Blockchain balances:")
+	stateDb.State.IterateOverAccounts(func(addr common.Address, account state.Account) {
+		log.Info("", "addr", addr.String(), "balance", blockchain.ConvertToFloat(account.Balance).String()+" IDNA")
+	})
 }
