@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"github.com/idena-network/idena-contract-runner/chain"
 	"github.com/idena-network/idena-go/blockchain"
 	"github.com/idena-network/idena-go/blockchain/attachments"
@@ -38,6 +39,7 @@ type DeployArgs struct {
 	Args     DynamicArgs     `json:"args"`
 	MaxFee   decimal.Decimal `json:"maxFee"`
 	Code     hexutil.Bytes   `json:"code"`
+	Nonce    hexutil.Bytes   `json:"nonce"`
 }
 
 type CallArgs struct {
@@ -168,6 +170,7 @@ type TxReceipt struct {
 	GasCost      decimal.Decimal `json:"gasCost"`
 	TxFee        decimal.Decimal `json:"txFee"`
 	ActionResult *ActionResult   `json:"ActionResult"`
+	Events       []Event         `json:"events"`
 }
 
 type ActionResult struct {
@@ -216,7 +219,7 @@ func (api *ContractApi) buildDeployContractTx(args DeployArgs, estimate bool) (*
 	if err != nil {
 		return nil, err
 	}
-	payload, _ := attachments.CreateDeployContractAttachment(codeHash, args.Code, convertedArgs...).ToBytes()
+	payload, _ := attachments.CreateDeployContractAttachment(codeHash, args.Code, args.Nonce, convertedArgs...).ToBytes()
 	tx := api.baseApi.getTx(from, nil, types.DeployContractTx, args.Amount, args.MaxFee, decimal.Zero, 0, 0, payload)
 	return api.signIfNeeded(from, tx, estimate)
 }
@@ -263,7 +266,7 @@ func (api *ContractApi) signIfNeeded(from common.Address, tx *types.Transaction,
 
 func (api *ContractApi) EstimateDeploy(args DeployArgs) (*TxReceipt, error) {
 	appState := api.baseApi.getAppStateForCheck()
-	vm := vm.NewVmImpl(appState, api.bc.Head, nil, api.bc.Config())
+	vm := vm.NewVmImpl(appState, api.bc, api.bc.Head, nil, api.bc.Config())
 	tx, err := api.buildDeployContractTx(args, true)
 	if err != nil {
 		return nil, err
@@ -283,7 +286,7 @@ func (api *ContractApi) EstimateDeploy(args DeployArgs) (*TxReceipt, error) {
 
 func (api *ContractApi) EstimateCall(args CallArgs) (*TxReceipt, error) {
 	appState := api.baseApi.getAppStateForCheck()
-	vm := vm.NewVmImpl(appState, api.bc.Head, nil, api.bc.Config())
+	vm := vm.NewVmImpl(appState, api.bc, api.bc.Head, nil, api.bc.Config())
 	tx, err := api.buildCallContractTx(args, true)
 	if err != nil {
 		return nil, err
@@ -314,7 +317,7 @@ func (api *ContractApi) EstimateCall(args CallArgs) (*TxReceipt, error) {
 
 func (api *ContractApi) EstimateTerminate(args TerminateArgs) (*TxReceipt, error) {
 	appState := api.baseApi.getAppStateForCheck()
-	vm := vm.NewVmImpl(appState, api.bc.Head, nil, api.bc.Config())
+	vm := vm.NewVmImpl(appState, api.bc, api.bc.Head, nil, api.bc.Config())
 	tx, err := api.buildTerminateContractTx(args, true)
 	if err != nil {
 		return nil, err
@@ -339,17 +342,27 @@ func convertReceipt(tx *types.Transaction, receipt *types.TxReceipt, feePerGas *
 		err = receipt.Error.Error()
 	}
 	txHash := receipt.TxHash
-	return &TxReceipt{
-		Success:  receipt.Success,
-		Error:    err,
-		Method:   receipt.Method,
-		Contract: receipt.ContractAddress,
-		TxHash:   &txHash,
-		GasUsed:  receipt.GasUsed,
-		GasCost:  blockchain.ConvertToFloat(receipt.GasCost),
-		TxFee:    blockchain.ConvertToFloat(fee),
+	result := &TxReceipt{
+		Success:      receipt.Success,
+		Error:        err,
+		Method:       receipt.Method,
+		Contract:     receipt.ContractAddress,
+		TxHash:       &txHash,
+		GasUsed:      receipt.GasUsed,
+		GasCost:      blockchain.ConvertToFloat(receipt.GasCost),
+		TxFee:        blockchain.ConvertToFloat(fee),
 		ActionResult: convertActionResultBytes(receipt.ActionResult),
 	}
+	for _, e := range receipt.Events {
+		event := Event{
+			Event: e.EventName,
+		}
+		for i := range e.Data {
+			event.Args = append(event.Args, e.Data[i])
+		}
+		result.Events = append(result.Events, event)
+	}
+	return result
 }
 
 func convertEstimatedReceipt(tx *types.Transaction, receipt *types.TxReceipt, feePerGas *big.Int) *TxReceipt {
@@ -373,6 +386,7 @@ func (api *ContractApi) Call(ctx context.Context, args CallArgs) (common.Hash, e
 	if err != nil {
 		return common.Hash{}, err
 	}
+	fmt.Println(api.ReadData(args.Contract, "STATE", "string"))
 	return api.baseApi.sendInternalTx(ctx, tx)
 }
 func (api *ContractApi) Terminate(ctx context.Context, args TerminateArgs) (common.Hash, error) {
@@ -392,7 +406,7 @@ func (api *ContractApi) ReadData(contract common.Address, key string, format str
 }
 
 func (api *ContractApi) ReadonlyCall(args ReadonlyCallArgs) (interface{}, error) {
-	vm := vm.NewVmImpl(api.baseApi.getReadonlyAppState(), api.bc.Head, nil, api.bc.Config())
+	vm := vm.NewVmImpl(api.baseApi.getReadonlyAppState(), api.bc, api.bc.Head, nil, api.bc.Config())
 	convertedArgs, err := args.Args.ToSlice()
 	if err != nil {
 		return nil, err

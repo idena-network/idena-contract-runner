@@ -2,10 +2,12 @@ module github.com/idena-network/idena-contract-runner
 
 require (
 	github.com/idena-network/idena-go v0.29.1
+	github.com/idena-network/idena-wasm-binding v0.0.0-20230119093315-44984665c16c
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/tendermint/tm-db v0.6.7
 	github.com/urfave/cli/v2 v2.3.0
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -72,7 +74,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/huin/goupnp v1.0.3 // indirect
-	github.com/idena-network/idena-wasm-binding v0.0.0-20221010093137-d566ac6db3aa // indirect
 	github.com/ipfs/bbloom v0.0.4 // indirect
 	github.com/ipfs/go-bitfield v1.0.0 // indirect
 	github.com/ipfs/go-bitswap v0.9.0 // indirect
@@ -256,7 +257,6 @@ require (
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
@@ -267,7 +267,7 @@ replace github.com/cosmos/iavl => github.com/idena-network/iavl v0.12.3-0.202112
 
 replace github.com/idena-network/idena-go => ..\idena-go
 
-replace github.com/idena-network/idena-wasm-binding => ..\idena-wasm-binding
+//replace github.com/idena-network/idena-wasm-binding => ..\idena-wasm-binding
 
 replace github.com/ipfs/fs-repo-migrations/fs-repo-11-to-12 => github.com/idena-network/fs-repo-migrations/fs-repo-11-to-12 v0.0.0-20220601101433-9ce72c125fd3
 

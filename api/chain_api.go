@@ -9,6 +9,7 @@ import (
 	"github.com/idena-network/idena-go/core/mempool"
 	"github.com/idena-network/idena-go/core/state"
 	"github.com/idena-network/idena-go/log"
+	"github.com/shopspring/decimal"
 	"math/big"
 )
 
@@ -63,13 +64,36 @@ func (api *ChainApi) TxReceipt(hash common.Hash) *TxReceipt {
 	return convertReceipt(tx, receipt, feePerGas)
 }
 
-func (api *ChainApi) ResetTo(block uint64) error{
+func (api *ChainApi) ResetTo(block uint64) error {
 	_, err := api.bc.ResetTo(block)
 	if err != nil {
 		return err
 	}
 	log.Info("Chain was reset", "block", block)
 	api.LogBalance()
+	return nil
+}
+
+func (api *ChainApi) SetIdentity(addr common.Address, status state.IdentityState) {
+	api.bc.SetIdentity(addr, status)
+}
+
+func (api *ChainApi) AddBalance(addr common.Address, amount decimal.Decimal) {
+	api.bc.AddBalance(addr, amount)
+}
+
+func (api *ChainApi) GetBalance(addr common.Address) decimal.Decimal {
+	state := api.baseApi.getAppStateForCheck()
+	return blockchain.ConvertToFloat(state.State.GetBalance(addr))
+}
+
+func (api *ChainApi) SetContractData(addr common.Address, key string, value string, format string) error {
+	arg := DynamicArg{Value: value, Format: format}
+	data, err := arg.ToBytes()
+	if err != nil {
+		return err
+	}
+	api.bc.SetContractData(addr, key, data)
 	return nil
 }
 

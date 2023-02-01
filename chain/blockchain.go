@@ -10,6 +10,7 @@ import (
 	"github.com/idena-network/idena-go/config"
 	"github.com/idena-network/idena-go/core/appstate"
 	"github.com/idena-network/idena-go/core/mempool"
+	"github.com/idena-network/idena-go/core/state"
 	"github.com/idena-network/idena-go/core/upgrade"
 	"github.com/idena-network/idena-go/crypto"
 	"github.com/idena-network/idena-go/ipfs"
@@ -17,6 +18,7 @@ import (
 	"github.com/idena-network/idena-go/secstore"
 	"github.com/idena-network/idena-go/stats/collector"
 	"github.com/idena-network/idena-go/subscriptions"
+	"github.com/shopspring/decimal"
 	db "github.com/tendermint/tm-db"
 	"log"
 	"math/big"
@@ -43,6 +45,7 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 	consensusCfg := config.GetDefaultConsensusConfig()
 	consensusCfg.Automine = true
 	consensusCfg.EnableUpgrade10 = true
+	consensusCfg.EnableUpgrade11 = true
 	cfg := &config.Config{
 		Network:   0x99,
 		Consensus: consensusCfg,
@@ -57,6 +60,7 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 		Blockchain: &config.BlockchainConfig{
 			WriteAllEvents: true,
 		},
+		IsDebug: true,
 	}
 
 	if cfg.OfflineDetection == nil {
@@ -89,7 +93,8 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 
 	result := &MemBlockchain{chain, txPool, appState, keyStore, secStore}
 	txPool.Initialize(chain.Head, secStore.GetAddress(), false)
-	return result}
+	return result
+}
 
 func (b *MemBlockchain) KeyStore() *keystore.KeyStore {
 	return b.keyStore
@@ -110,7 +115,7 @@ func (b *MemBlockchain) TxPool() *mempool.TxPool {
 	return b.txpool
 }
 
-func (b *MemBlockchain) GenerateBlocks(count int){
+func (b *MemBlockchain) GenerateBlocks(count int) {
 	for i := 0; i < count; i++ {
 		block := b.ProposeBlock([]byte{})
 		block.Block.Header.ProposedHeader.Time = b.Head.Time() + 20
@@ -136,4 +141,16 @@ func (b *MemBlockchain) addCert(block *types.Block) {
 	vote.Signature = b.secStore.Sign(hash[:])
 	cert := types.FullBlockCert{Votes: []*types.Vote{vote}}
 	b.WriteCertificate(block.Header.Hash(), cert.Compress(), true)
+}
+
+func (b *MemBlockchain) SetIdentity(addr common.Address, status state.IdentityState) {
+	b.appstate.State.SetState(addr, status)
+}
+
+func (b *MemBlockchain) AddBalance(addr common.Address, amount decimal.Decimal) {
+	b.appstate.State.AddBalance(addr, blockchain.ConvertToInt(amount))
+}
+
+func (b *MemBlockchain) SetContractData(addr common.Address, key string, data []byte) {
+	b.appstate.State.SetContractValue(addr, []byte(key), data)
 }
