@@ -1,8 +1,8 @@
 module github.com/idena-network/idena-contract-runner
 
 require (
-	github.com/idena-network/idena-go v0.29.1
-	github.com/idena-network/idena-wasm-binding v0.0.0-20230119093315-44984665c16c
+	github.com/idena-network/idena-go v0.31.1-0.20230207091833-9a34a183499c
+	github.com/idena-network/idena-wasm-binding v0.0.0-20230207084120-b7d9d07ba81e
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/tendermint/tm-db v0.6.7
@@ -34,6 +34,7 @@ require (
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/confio/ics23/go v0.6.6 // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
+	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.15.3 // indirect
@@ -159,6 +160,7 @@ require (
 	github.com/libp2p/go-netroute v0.2.0 // indirect
 	github.com/libp2p/go-openssl v0.0.7 // indirect
 	github.com/libp2p/go-reuseport v0.2.0 // indirect
+	github.com/libp2p/go-yamux v1.4.1 // indirect
 	github.com/libp2p/go-yamux/v3 v3.1.2 // indirect
 	github.com/libp2p/zeroconf/v2 v2.1.1 // indirect
 	github.com/lucas-clemente/quic-go v0.28.0 // indirect
@@ -203,6 +205,7 @@ require (
 	github.com/prometheus/common v0.35.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/raulk/go-watchdog v1.3.0 // indirect
+	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/rs/cors v1.8.2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
@@ -265,7 +268,7 @@ require (
 
 replace github.com/cosmos/iavl => github.com/idena-network/iavl v0.12.3-0.20211223100228-a33b117aa31e
 
-replace github.com/idena-network/idena-go => ..\idena-go
+//replace github.com/idena-network/idena-go => ..\idena-go
 
 //replace github.com/idena-network/idena-wasm-binding => ..\idena-wasm-binding
 

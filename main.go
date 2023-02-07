@@ -8,9 +8,13 @@ import (
 	"runtime"
 )
 
+var (
+	version = "0.0.1"
+)
+
 func main() {
 	app := cli.NewApp()
-	app.Version = "0.0.1"
+	app.Version = version
 
 	app.Flags = []cli.Flag{}
 
@@ -32,7 +36,7 @@ func main() {
 		if err := runner.Start(); err != nil {
 			return err
 		}
-		runner.LogBalance();
+		runner.LogBalance()
 		runner.WaitForStop()
 		return nil
 	}
