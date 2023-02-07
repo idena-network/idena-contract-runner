@@ -43,11 +43,11 @@ jobs:
           gitTag=${{ steps.tag.outputs.tag }}
           tag=${gitTag:1}
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            asset_name="idena-contract-runner-${tag}"
+            asset_name="idena-contract-runner-linux-${tag}"
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            asset_name="idena-contract-runner-${tag}"
+            asset_name="idena-contract-runner-mac-${tag}"
           else
-            asset_name="idena-contract-runner-${tag}.exe"
+            asset_name="idena-contract-runner-win-${tag}.exe"
           fi
           echo "GIT_TAG=${tag}" >> $GITHUB_ENV
           echo "ASSET_NAME=${asset_name}" >> $GITHUB_ENV
