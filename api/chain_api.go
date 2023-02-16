@@ -94,6 +94,8 @@ func (api *ChainApi) SetContractData(addr common.Address, key string, value stri
 		return err
 	}
 	api.bc.SetContractData(addr, key, data)
+	api.bc.GenerateBlocks(1)
+	api.bc.CleanDataMiddlewareValues()
 	return nil
 }
 

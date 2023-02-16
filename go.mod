@@ -1,8 +1,8 @@
 module github.com/idena-network/idena-contract-runner
 
 require (
-	github.com/idena-network/idena-go v0.31.1-0.20230207091833-9a34a183499c
-	github.com/idena-network/idena-wasm-binding v0.0.0-20230207084120-b7d9d07ba81e
+	github.com/idena-network/idena-go v0.31.1-0.20230216182230-2ac1560cb634
+	github.com/idena-network/idena-wasm-binding v0.0.0-20230216175455-f50bdbeff409
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/tendermint/tm-db v0.6.7

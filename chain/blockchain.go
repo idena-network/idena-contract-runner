@@ -31,6 +31,8 @@ type MemBlockchain struct {
 	appstate *appstate.AppState
 	keyStore *keystore.KeyStore
 	secStore *secstore.SecStore
+
+	setDataMiddlewareValues map[common.Address]map[string][]byte
 }
 
 func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
@@ -91,8 +93,9 @@ func NewMemBlockchain(godKey *ecdsa.PrivateKey) *MemBlockchain {
 	chain.InitializeChain()
 	appState.Initialize(chain.Head.Height())
 
-	result := &MemBlockchain{chain, txPool, appState, keyStore, secStore}
+	result := &MemBlockchain{chain, txPool, appState, keyStore, secStore, map[common.Address]map[string][]byte{}}
 	txPool.Initialize(chain.Head, secStore.GetAddress(), false)
+	result.UseMiddleware(result.setDataMiddleware)
 	return result
 }
 
@@ -152,5 +155,23 @@ func (b *MemBlockchain) AddBalance(addr common.Address, amount decimal.Decimal) 
 }
 
 func (b *MemBlockchain) SetContractData(addr common.Address, key string, data []byte) {
-	b.appstate.State.SetContractValue(addr, []byte(key), data)
+	var m map[string][]byte
+	var ok bool
+	if m, ok = b.setDataMiddlewareValues[addr]; !ok {
+		m = map[string][]byte{}
+		b.setDataMiddlewareValues[addr] = m
+	}
+	m[key] = data
+}
+
+func (b *MemBlockchain) setDataMiddleware(block *types.Block, appState *appstate.AppState) {
+	for contract, m := range b.setDataMiddlewareValues {
+		for key, value := range m {
+			appState.State.SetContractValue(contract, []byte(key), value)
+		}
+	}
+}
+
+func (b *MemBlockchain) CleanDataMiddlewareValues() {
+	b.setDataMiddlewareValues = map[common.Address]map[string][]byte{}
 }

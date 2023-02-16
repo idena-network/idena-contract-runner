@@ -169,7 +169,7 @@ type TxReceipt struct {
 	Error        string          `json:"error"`
 	GasCost      decimal.Decimal `json:"gasCost"`
 	TxFee        decimal.Decimal `json:"txFee"`
-	ActionResult *ActionResult   `json:"ActionResult"`
+	ActionResult *ActionResult   `json:"actionResult"`
 	Events       []Event         `json:"events"`
 }
 
@@ -359,6 +359,11 @@ func convertReceipt(tx *types.Transaction, receipt *types.TxReceipt, feePerGas *
 		}
 		for i := range e.Data {
 			event.Args = append(event.Args, e.Data[i])
+		}
+		if !e.Contract.IsEmpty() {
+			event.Contract = e.Contract
+		} else {
+			event.Contract = receipt.ContractAddress
 		}
 		result.Events = append(result.Events, event)
 	}
