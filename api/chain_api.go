@@ -60,7 +60,9 @@ func (api *ChainApi) TxReceipt(hash common.Hash) *TxReceipt {
 	}
 
 	receipt := api.bc.GetReceipt(hash)
-
+	if receipt == nil {
+		return nil
+	}
 	return convertReceipt(tx, receipt, feePerGas)
 }
 
